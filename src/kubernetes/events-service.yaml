@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: events-service
+  namespace: cinemaabyss
+  labels:
+    app: events-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: events-service
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: events-service
+    spec:
+      initContainers:
+      - name: wait-for-kafka
+        image: ghcr.io/nastarkov/architecture-cinemaabyss/events-service:latest
+        imagePullPolicy: IfNotPresent
+        command:
+        - sh
+        - -c
+        - |
+          python - <<'PY'
+          import socket
+          import time
+          while True:
+              try:
+                  with socket.create_connection(("kafka.cinemaabyss.svc.cluster.local", 9092), timeout=2):
+                      pass
+                  time.sleep(15)
+                  break
+              except Exception:
+                  time.sleep(2)
+          PY
+      containers:
+      - name: events-service
+        image: ghcr.io/nastarkov/architecture-cinemaabyss/events-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8082
+        env:
+        - name: PORT
+          value: "8082"
+        - name: KAFKA_BROKER
+          value: "kafka.cinemaabyss.svc.cluster.local:9092"
+        resources:
+          limits:
+            cpu: "300m"
+            memory: "256Mi"
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+        readinessProbe:
+          httpGet:
+            path: /api/events/health
+            port: 8082
+          initialDelaySeconds: 20
+          timeoutSeconds: 3
+          periodSeconds: 10
+          failureThreshold: 6
+        livenessProbe:
+          httpGet:
+            path: /api/events/health
+            port: 8082
+          initialDelaySeconds: 40
+          timeoutSeconds: 3
+          periodSeconds: 20
+          failureThreshold: 6
+      restartPolicy: Always
+      imagePullSecrets:
+        - name: dockerconfigjson
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: events-service
+  namespace: cinemaabyss
+spec:
+  selector:
+    app: events-service
+  ports:
+  - port: 8082
+    targetPort: 8082
+  type: ClusterIP

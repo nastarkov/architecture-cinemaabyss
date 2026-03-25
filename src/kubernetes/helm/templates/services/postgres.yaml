@@ -51,11 +51,13 @@ spec:
           exec:
             command: ["pg_isready", "-U", "postgres"]
           initialDelaySeconds: 5
+          timeoutSeconds: 5
           periodSeconds: 10
         livenessProbe:
           exec:
             command: ["pg_isready", "-U", "postgres"]
           initialDelaySeconds: 30
+          timeoutSeconds: 5
           periodSeconds: 20
       volumes:
       - name: postgres-init-scripts

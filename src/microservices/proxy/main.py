@@ -65,6 +65,20 @@ def users(path: str = "") -> Response:
     return forward(MONOLITH_URL)
 
 
+@app.route("/api/payments", methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"])
+@app.route("/api/payments/<path:path>", methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"])
+def payments(path: str = "") -> Response:
+    _ = path
+    return forward(MONOLITH_URL)
+
+
+@app.route("/api/subscriptions", methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"])
+@app.route("/api/subscriptions/<path:path>", methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"])
+def subscriptions(path: str = "") -> Response:
+    _ = path
+    return forward(MONOLITH_URL)
+
+
 @app.route("/api/events", methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"])
 @app.route("/api/events/<path:path>", methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"])
 def events(path: str = "") -> Response:
