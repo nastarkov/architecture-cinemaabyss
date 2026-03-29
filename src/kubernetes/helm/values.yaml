@@ -34,7 +34,7 @@ monolith:
   enabled: true
   image:
     repository: ghcr.io/nastarkov/architecture-cinemaabyss/monolith
-    tag: latest
+    tag: cinema
     pullPolicy: IfNotPresent
   replicas: 1
   resources:
@@ -54,7 +54,7 @@ proxyService:
   enabled: true
   image:
     repository: ghcr.io/nastarkov/architecture-cinemaabyss/proxy-service
-    tag: latest
+    tag: cinema
     pullPolicy: IfNotPresent
   replicas: 1
   resources:
@@ -74,7 +74,7 @@ moviesService:
   enabled: true
   image:
     repository: ghcr.io/nastarkov/architecture-cinemaabyss/movies-service
-    tag: latest
+    tag: cinema
     pullPolicy: IfNotPresent
   replicas: 1
   resources:
@@ -94,7 +94,7 @@ eventsService:
   enabled: true
   image:
     repository: ghcr.io/nastarkov/architecture-cinemaabyss/events-service
-    tag: latest
+    tag: cinema
     pullPolicy: IfNotPresent
   replicas: 1
   resources:

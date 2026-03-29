@@ -19,7 +19,7 @@ spec:
     spec:
       initContainers:
       - name: wait-for-kafka
-        image: ghcr.io/nastarkov/architecture-cinemaabyss/events-service:latest
+        image: ghcr.io/nastarkov/architecture-cinemaabyss/events-service:cinema
         imagePullPolicy: IfNotPresent
         command:
         - sh
@@ -39,7 +39,7 @@ spec:
           PY
       containers:
       - name: events-service
-        image: ghcr.io/nastarkov/architecture-cinemaabyss/events-service:latest
+        image: ghcr.io/nastarkov/architecture-cinemaabyss/events-service:cinema
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8082

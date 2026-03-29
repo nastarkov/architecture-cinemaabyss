@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: movies-service
-        image: ghcr.io/nastarkov/architecture-cinemaabyss/movies-service:latest
+        image: ghcr.io/nastarkov/architecture-cinemaabyss/movies-service:cinema
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8081
