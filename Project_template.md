@@ -2,16 +2,12 @@
 
 # Задание 1
 
-1. Спроектируйте to be архитектуру КиноБездны, разделив всю систему на отдельные домены и организовав интеграционное взаимодействие и единую точку вызова сервисов.
-Результат представьте в виде контейнерной диаграммы в нотации С4.
-Добавьте ссылку на файл в этот шаблон
-[ссылка на файл](ссылка)
+![C4_Container](/schemas/Container.svg)
 
 # Задание 2
 
 ### 1. Proxy
 Команда КиноБездны уже выделила сервис метаданных о фильмах movies и вам необходимо реализовать бесшовный переход с применением паттерна Strangler Fig в части реализации прокси-сервиса (API Gateway), с помощью которого можно будет постепенно переключать траффик, используя фиче-флаг.
-
 
 Реализуйте сервис на любом языке программирования в ./src/microservices/proxy.
 Конфигурация для запуска сервиса через docker-compose уже добавлена
@@ -48,16 +44,10 @@
 
 
 ### 2. Kafka
- Вам как архитектуру нужно также проверить гипотезу насколько просто реализовать применение Kafka в данной архитектуре.
 
-Для этого нужно сделать MVP сервис events, который будет при вызове API создавать и сам же читать сообщения в топике Kafka.
-
-    - Разработайте сервис на любом языке программирования с consumer'ами и producer'ами.
-    - Реализуйте простой API, при вызове которого будут создаваться события User/Payment/Movie и обрабатываться внутри сервиса с записью в лог
-    - Добавьте в docker-compose новый сервис, kafka там уже есть
-
-Необходимые тесты для проверки этого API вызываются при запуске npm run test:local из папки tests/postman 
-Приложите скриншот тестов и скриншот состояния топиков Kafka из UI http://localhost:8090 
+![Kafka](/screenshots/kafka-1.png)
+![Kafka](/screenshots/kafka-2.png)
+![Kafka](/screenshots/kafka-3.png)
 
 # Задание 3
 
@@ -110,6 +100,8 @@ jobs:
 Успешным результатом данного шага является "зеленая" сборка и "зеленые" тесты
 
 
+![CI_CD](/screenshots/CI_CD.png)
+
 ### Proxy в Kubernetes
 
 #### Шаг 1
@@ -160,7 +152,9 @@ cat .docker/config.json | base64
 
 ```bash
  .dockerconfigjson: значение в base64 файла ~/.docker/config.json
-```
+
+ ```
+
 
 #### Шаг 2
 
@@ -270,11 +264,20 @@ cat .docker/config.json | base64
    npm run test:kubernetes
   ```
   Часть тестов с health-чек упадет, но создание событий отработает.
-  Откройте логи event-service и сделайте скриншот обработки событий
+  
+  
+
+![Test_local](/screenshots/Tests_local.png)
+![Test_k8s](/screenshots/Tests_kuber.png)
+
+Откройте логи event-service и сделайте скриншот обработки событий
+
+![Logs](/screenshots/event-service-logs.png)
 
 #### Шаг 3
-Добавьте сюда скриншота вывода при вызове https://cinemaabyss.example.com/api/movies и  скриншот вывода event-service после вызова тестов.
+Добавьте сюда скриншота вывода при вызове https://cinemaabyss.example.com/api/movies и скриншот вывода event-service после вызова тестов.
 
+![Curl](/screenshots/curl_results.png)
 
 # Задание 4
 Для простоты дальнейшего обновления и развертывания вам как архитектуру необходимо так же реализовать helm-чарты для прокси-сервиса и проверить работу 
@@ -356,3 +359,6 @@ https://cinemaabyss.example.com/api/movies
 kubectl delete all --all -n cinemaabyss
 kubectl delete namespace cinemaabyss
 ```
+
+![helm](/screenshots/helm_1.png)
+![helm](/screenshots/helm_2.png)

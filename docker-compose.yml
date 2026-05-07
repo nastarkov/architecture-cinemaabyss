@@ -24,19 +24,29 @@ services:
 
   # ZooKeeper for Kafka
   zookeeper:
+    platform: linux/amd64
     image: wurstmeister/zookeeper:latest
     container_name: cinemaabyss-zookeeper
     ports:
       - "2181:2181"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'cat < /dev/null > /dev/tcp/127.0.0.1/2181'"]
+      interval: 10s
+      timeout: 3s
+      retries: 15
+      start_period: 20s
+    restart: unless-stopped
     networks:
       - cinemaabyss-network
 
   # Kafka
   kafka:
+    platform: linux/amd64
     image: wurstmeister/kafka:2.13-2.7.0
     container_name: cinemaabyss-kafka
     depends_on:
-      - zookeeper
+      zookeeper:
+        condition: service_healthy
     ports:
       - "9092:9092"
     environment:
@@ -45,8 +55,15 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_CREATE_TOPICS: "movie-events:1:1,user-events:1:1,payment-events:1:1"
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'cat < /dev/null > /dev/tcp/127.0.0.1/9092'"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 40s
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
     networks:
       - cinemaabyss-network
 
@@ -57,7 +74,9 @@ services:
       dockerfile: Dockerfile
     container_name: cinemaabyss-monolith
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
     ports:
       - "8080:8080"
     environment:
@@ -73,7 +92,9 @@ services:
       dockerfile: Dockerfile
     container_name: cinemaabyss-movies-service
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
     ports:
       - "8081:8081"
     environment:
@@ -83,21 +104,24 @@ services:
       - cinemaabyss-network
 
   # Events Microservice
+  
   events-service:
     build:
       context: ./src/microservices/events
       dockerfile: Dockerfile
     container_name: cinemaabyss-events-service
     depends_on:
-      - postgres
-      - kafka
+      kafka:
+        condition: service_healthy
+    restart: unless-stopped
     ports:
-      - "8082:8082"
+      - "8082:8082"  # Изменено с 8000 на 8082
     environment:
       PORT: 8082
-      KAFKA_BROKERS: kafka:9092
+      KAFKA_BROKER: kafka:9092
     networks:
       - cinemaabyss-network
+
 
   # Proxy Service (API Gateway)
   proxy-service:
@@ -109,6 +133,7 @@ services:
       - monolith
       - movies-service
       - events-service
+    restart: unless-stopped
     ports:
       - "8000:8000"
     environment:

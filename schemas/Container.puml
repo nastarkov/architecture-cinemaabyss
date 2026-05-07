@@ -1,0 +1,79 @@
+@startuml
+title Cinema Platform Container Diagram
+
+top to bottom direction
+
+!include C4_Container.puml
+
+Person(user, "Пользователь", "Смотрит фильмы и управляет своим аккаунтом с удобного устройства")
+
+System_Ext(RecommendationSystem, "Recommendation System", "Формирует персональные рекомендации на основе пользовательских событий")
+System_Ext(ExternalPaymentProvider, "Payment Provider", "Внешний сервис для проведения оплат")
+
+System_Boundary(CinemaSystem, "Cinema System") {
+  Container(mobile, "Mobile Application", "Мобильный клиент")
+  Container(web, "Web Application", "Веб-клиент")
+  Container(tv, "TV Application", "Клиент для Smart TV")
+
+  Container(ApiGateway, "API Gateway", "Nginx / Ingress", "Единая точка входа: маршрутизация запросов, проверка токенов, применение auth policy")
+
+  Container(MobileBFF, "Mobile BFF", "Go", "Адаптирует API и агрегирует данные для мобильного клиента")
+  Container(WebBFF, "Web BFF", "Go", "Адаптирует API и агрегирует данные для веб-клиента")
+  Container(TVBFF, "TV BFF", "Go", "Адаптирует API и агрегирует данные для TV-клиента")
+
+  Container(AuthService, "Auth Service", "Go", "Аутентификация пользователей, выпуск и обновление токенов")
+  Container(UserService, "User Service", "Go", "Управляет профилями пользователей, подписками, избранным, оценками и персональными рекомендациями")
+  Container(CatalogService, "Catalog Service", "Go", "Управляет каталогом фильмов, доступностью контента и карточками фильмов")
+  Container(MetadataService, "Metadata Service", "Go", "Управляет метаданными фильмов: жанрами, актерами, рейтингами и описаниями")
+  Container(PaymentService, "Payment Service", "Go", "Обрабатывает оплату подписки и статус платежей")
+
+  ContainerQueue(Kafka, "Kafka", "Event Streaming Platform", "Шина событий для пользовательских действий и асинхронной интеграции с рекомендательной системой")
+
+  ContainerDb(AuthDb, "Auth DB", "PostgreSQL", "Хранит учетные данные, refresh-токены и данные аутентификации")
+  ContainerDb(UserDb, "User DB", "PostgreSQL", "Хранит профили, подписки, избранное, оценки и персональные рекомендации")
+  ContainerDb(CatalogDb, "Catalog DB", "PostgreSQL", "Хранит каталог фильмов, их доступность и данные для выдачи карточек")
+  ContainerDb(MetadataDb, "Metadata DB", "PostgreSQL", "Хранит жанры, актеров, оценки, описания и другие метаданные фильмов")
+  ContainerDb(ObjectStorage, "Object Storage", "S3-compatible storage", "Хранит видеофайлы, постеры и другие медиа-объекты")
+  ContainerDb(PaymentDb, "Payment DB", "PostgreSQL", "Хранит информацию о транзакциях и статусах платежей")
+}
+
+Rel(user, mobile, "Использует")
+Rel(user, web, "Использует")
+Rel(user, tv, "Использует")
+
+Rel(mobile, ApiGateway, "Вызов API по HTTPS")
+Rel(web, ApiGateway, "Вызов API по HTTPS")
+Rel(tv, ApiGateway, "Вызов API по HTTPS")
+
+Rel(ApiGateway, MobileBFF, "Маршрутизирует запросы")
+Rel(ApiGateway, WebBFF, "Маршрутизирует запросы")
+Rel(ApiGateway, TVBFF, "Маршрутизирует запросы")
+
+Rel(MobileBFF, AuthService, "Логин / refresh / проверка сессии")
+Rel(WebBFF, AuthService, "Логин / refresh / проверка сессии")
+Rel(TVBFF, AuthService, "Логин / refresh / проверка сессии")
+
+Rel(MobileBFF, UserService, "Работа с профилем, подпиской, избранным, оценками и рекомендациями")
+Rel(WebBFF, UserService, "Работа с профилем, подпиской, избранным, оценками и рекомендациями")
+Rel(TVBFF, UserService, "Работа с профилем, подпиской, избранным, оценками и рекомендациями")
+
+Rel(MobileBFF, CatalogService, "Получение каталога и карточек фильмов")
+Rel(WebBFF, CatalogService, "Получение каталога и карточек фильмов")
+Rel(TVBFF, CatalogService, "Получение каталога и карточек фильмов")
+
+Rel(CatalogService, MetadataService, "Запрашивает метаданные фильмов")
+Rel(CatalogService, ObjectStorage, "Получает доступ к медиа-объектам")
+
+Rel(UserService, PaymentService, "Инициирует оплату подписки")
+Rel(PaymentService, ExternalPaymentProvider, "Проводит оплату")
+
+Rel(UserService, Kafka, "Публикует пользовательские события и читает персональные рекомендации")
+Rel(RecommendationSystem, Kafka, "Читает пользовательские события и публикует персональные рекомендации")
+
+Rel(AuthService, AuthDb, "Чтение/запись")
+Rel(UserService, UserDb, "Чтение/запись")
+Rel(CatalogService, CatalogDb, "Чтение/запись")
+Rel(MetadataService, MetadataDb, "Чтение/запись")
+Rel(PaymentService, PaymentDb, "Чтение/запись")
+
+@enduml
